@@ -1,6 +1,8 @@
 package com.erdemtsynduev.rotate360degree
 
 import android.os.Bundle
+import android.view.MotionEvent
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
 import kotlinx.android.synthetic.main.activity_main.*
@@ -21,11 +23,60 @@ class MainActivity : AppCompatActivity() {
 
         createListAssetsImage()
         coroutinesStartFunction()
+
+        main_activity_root_layout.setOnTouchListener(object : OnSwipeTouchListener() {
+            override fun onSwipeLeft() {
+                isReverse = false
+            }
+
+            override fun onSwipeRight() {
+                isReverse = true
+            }
+        })
+
+        main_activity_btn_pause.setOnClickListener {
+            playImage = !playImage
+            if (playImage) {
+                main_activity_btn_pause.setImageResource(R.drawable.ic_baseline_pause)
+                coroutinesStartFunction()
+            } else {
+                main_activity_btn_pause.setImageResource(R.drawable.ic_baseline_play_arrow)
+            }
+        }
+
+        main_activity_btn_right.setOnClickListener {
+            if (playImage) {
+                isReverse = true
+            } else {
+                checkNumberIndex()
+                indexImage--
+                runOnUiThread {
+                    Glide.with(this).load(arrayListPictureAssets[indexImage])
+                        .placeholder(main_activity_photo_image.drawable)
+                        .into(main_activity_photo_image)
+                }
+            }
+        }
+
+        main_activity_btn_left.setOnClickListener {
+            if (playImage) {
+                isReverse = false
+            } else {
+                checkNumberIndex()
+                indexImage++
+                runOnUiThread {
+                    Glide.with(this).load(arrayListPictureAssets[indexImage])
+                        .placeholder(main_activity_photo_image.drawable)
+                        .into(main_activity_photo_image)
+                }
+            }
+        }
     }
 
     private fun coroutinesStartFunction() {
         GlobalScope.launch {
             playImageLikeGif()
+
         }
     }
 
@@ -44,14 +95,10 @@ class MainActivity : AppCompatActivity() {
 
 
     private fun checkNumberIndex() {
-        if (isReverse) {
-            if (indexImage < 0) {
-                indexImage = 35
-            }
-        } else {
-            if (indexImage > 35) {
-                indexImage = 0
-            }
+        if (indexImage < 0) {
+            indexImage = 35
+        } else if (indexImage > 35) {
+            indexImage = 0
         }
     }
 
