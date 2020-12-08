@@ -48,8 +48,8 @@ class MainActivity : AppCompatActivity() {
             if (playImage) {
                 isReverse = true
             } else {
-                checkNumberIndex()
                 indexImage--
+                checkNumberIndex()
                 runOnUiThread {
                     Glide.with(this).load(arrayListPictureAssets[indexImage])
                         .placeholder(main_activity_photo_image.drawable)
@@ -62,8 +62,8 @@ class MainActivity : AppCompatActivity() {
             if (playImage) {
                 isReverse = false
             } else {
-                checkNumberIndex()
                 indexImage++
+                checkNumberIndex()
                 runOnUiThread {
                     Glide.with(this).load(arrayListPictureAssets[indexImage])
                         .placeholder(main_activity_photo_image.drawable)
