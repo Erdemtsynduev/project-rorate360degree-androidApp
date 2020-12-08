@@ -1,2 +1,0 @@
-com/erdemtsynduev/rotate360degree/BuildConfig.java
- com.erdemtsynduev.rotate360degree.BuildConfig
