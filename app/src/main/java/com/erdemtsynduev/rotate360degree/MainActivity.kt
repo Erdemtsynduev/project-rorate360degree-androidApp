@@ -2,13 +2,15 @@ package com.erdemtsynduev.rotate360degree
 
 import android.os.Bundle
 import android.view.MotionEvent
-import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import timber.log.Timber
+import timber.log.Timber.DebugTree
+import kotlin.math.abs
 
 class MainActivity : AppCompatActivity() {
 
@@ -16,60 +18,76 @@ class MainActivity : AppCompatActivity() {
     var playImage = true
     var isReverse = true
     var indexImage = 0
+    private var x1: Float = 0f
+    private var x2: Float = 0f
+    private val minDistance = 60
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        if (BuildConfig.DEBUG) {
+            Timber.plant(DebugTree())
+        }
+
         createListAssetsImage()
         coroutinesStartFunction()
+    }
 
-        main_activity_root_layout.setOnTouchListener(object : OnSwipeTouchListener() {
-            override fun onSwipeLeft() {
-                isReverse = false
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        when (event.action) {
+            MotionEvent.ACTION_DOWN -> {
+                x1 = event.x
+                playImage = false
             }
-
-            override fun onSwipeRight() {
-                isReverse = true
-            }
-        })
-
-        main_activity_btn_pause.setOnClickListener {
-            playImage = !playImage
-            if (playImage) {
-                main_activity_btn_pause.setImageResource(R.drawable.ic_baseline_pause)
-                coroutinesStartFunction()
-            } else {
-                main_activity_btn_pause.setImageResource(R.drawable.ic_baseline_play_arrow)
-            }
-        }
-
-        main_activity_btn_right.setOnClickListener {
-            if (playImage) {
-                isReverse = true
-            } else {
-                indexImage--
-                checkNumberIndex()
-                runOnUiThread {
-                    Glide.with(this).load(arrayListPictureAssets[indexImage])
-                        .placeholder(main_activity_photo_image.drawable)
-                        .into(main_activity_photo_image)
+            MotionEvent.ACTION_UP -> {
+                x2 = event.x
+                val deltaX = x2 - x1
+                val absDeltaX = abs(deltaX)
+                if (absDeltaX > minDistance) {
+                    val count = absDeltaX.toInt() / 30
+                    if (x2 > x1) {
+                        GlobalScope.launch {
+                            rotateRight(count)
+                        }
+                        Timber.d("rotateRight = %s", count)
+                        Timber.d("Left to Right swipe [Next]")
+                    } else {
+                        GlobalScope.launch {
+                            rotateLeft(count)
+                        }
+                        Timber.d("rotateLeft = %s", count)
+                        Timber.d("Right to Left swipe [Previous]")
+                    }
                 }
             }
         }
+        return super.onTouchEvent(event)
+    }
 
-        main_activity_btn_left.setOnClickListener {
-            if (playImage) {
-                isReverse = false
-            } else {
-                indexImage++
-                checkNumberIndex()
-                runOnUiThread {
-                    Glide.with(this).load(arrayListPictureAssets[indexImage])
-                        .placeholder(main_activity_photo_image.drawable)
-                        .into(main_activity_photo_image)
-                }
+    private suspend fun rotateRight(count: Int) {
+        for (i in 0..count) {
+            indexImage--
+            checkNumberIndex()
+            runOnUiThread {
+                Glide.with(this).load(arrayListPictureAssets[indexImage])
+                    .placeholder(main_activity_photo_image.drawable)
+                    .into(main_activity_photo_image)
             }
+            delay(50)
+        }
+    }
+
+    private suspend fun rotateLeft(count: Int) {
+        for (i in 0..count) {
+            indexImage++
+            checkNumberIndex()
+            runOnUiThread {
+                Glide.with(this).load(arrayListPictureAssets[indexImage])
+                    .placeholder(main_activity_photo_image.drawable)
+                    .into(main_activity_photo_image)
+            }
+            delay(50)
         }
     }
 
